@@ -76,7 +76,10 @@ app.post("/product", (req, res) => {
       connection.release();
 
       if (!err) {
-        res.send(`New Product inserted`);
+        const result = {
+          message: "New Product inserted",
+        };
+        res.send(result);
       } else {
         console.log(err);
       }
@@ -103,7 +106,10 @@ app.patch("/product/:id", (req, res) => {
         connection.release();
 
         if (!err) {
-          res.send(`Product updated`);
+          const result = {
+            message: "product updated",
+          };
+          res.send(result);
         } else {
           console.log(err);
         }
