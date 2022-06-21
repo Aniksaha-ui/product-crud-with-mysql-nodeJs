@@ -24,7 +24,7 @@ app.get("/product/:qrcode", (req, res) => {
     }
 
     connection.query(
-      `SELECT * FROM products where qr_code=${qrCode}`,
+      `SELECT * FROM products where qr_code="${qrCode}"`,
       (err, rows) => {
         connection.release();
 
