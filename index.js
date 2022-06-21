@@ -121,7 +121,12 @@ app.patch("/product/:id", (req, res) => {
 //invoice
 app.get("/invoice/:orderId", (req, res) => {
   const invoiceId = req.params.orderId;
-  console.log(invoiceId);
+  var query = req.query.coupon;
+  if (!query) {
+    var query = "NA";
+  }
+  // console.log(query);
+  // console.log(invoiceId);
   pool.getConnection((err, connection) => {
     if (err) {
       throw err;
@@ -132,22 +137,42 @@ app.get("/invoice/:orderId", (req, res) => {
       `SELECT title,qr_code,selling_price,quantity FROM products JOIN cart WHERE products.id = cart.product_id AND OrderNumber=${invoiceId};
       `,
       (err, productRows) => {
-        connection.release();
         if (!err) {
-          let totalAmount = 0;
+          connection.query(
+            `SELECT * FROM coupons WHERE coupon=${query};`,
+            (err, couponRow) => {
+              if (!couponRow) {
+                var discount = 0;
 
-          productRows.map(
-            (product) =>
-              (totalAmount =
-                totalAmount + product.selling_price * product.quantity)
+                // console.log(discount);
+              } else {
+                var discount = couponRow[0].discount_amount;
+                // console.log(discount);
+              }
+              let totalAmount = 0;
+
+              productRows.map(
+                (product) =>
+                  (totalAmount =
+                    totalAmount + product.selling_price * product.quantity)
+              );
+
+              const grandTotal = totalAmount - discount;
+
+              const data = {
+                orderedProduct: productRows,
+                totalAmount: totalAmount,
+                discount: discount,
+                grandTotal: grandTotal,
+              };
+
+              res.send(data);
+            }
           );
-          console.log(totalAmount);
-          const data = {
-            orderedProduct: productRows,
-            totalAmount: totalAmount,
-          };
 
-          res.send(data);
+          connection.release();
+
+          // console.log(totalAmount);
         } else {
           console.log(err);
         }
@@ -159,7 +184,7 @@ app.get("/invoice/:orderId", (req, res) => {
 //profit
 app.get("/profit/:date", (req, res) => {
   const date = req.params.date;
-  console.log(date);
+  // console.log(date);
   pool.getConnection((err, connection) => {
     if (err) {
       throw err;
